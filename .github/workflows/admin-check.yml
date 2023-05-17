@@ -1,8 +1,11 @@
 name: Python CI
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
 
 env:
   env_var: ${{ vars.PORT }}
