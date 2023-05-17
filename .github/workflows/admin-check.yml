@@ -26,4 +26,4 @@ jobs:
         run: |
           make check
         env:
-          CC_TEST_REPORTER_ID: ${{ secrets.ADMIN_ID }}
+          ADMIN_ID: ${{ secrets.ADMIN_ID }}
