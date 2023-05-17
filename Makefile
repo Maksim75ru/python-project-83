@@ -18,9 +18,9 @@ lint:
 package-install:
 	python3 -m pip install --user --force-reinstall dist/*.whl
 
-selfcheck:
+check:
 	poetry check
 
-check: selfcheck lint
+all-checks: check lint
 
 .PHONY: install check build

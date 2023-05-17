@@ -4,26 +4,26 @@ on:
   - push
   - pull_request
 
+env:
+  env_var: ${{ vars.PORT }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # we want to test our package on several versions of Python
-        python-version: ['3.8', '3.9', '3.10']
+
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Install poetry
+        run: pip install poetry
+
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
-        # make depends on poetry
+          python-version: '3.10'
+          cache: poetry
+
       - name: Install dependencies
-        run: |
-          pip install poetry
-          make install
-      - name: Run linter
-        run: |
-          make check
-        env:
-          ADMIN_ID: ${{ secrets.ADMIN_ID }}
+        run: make install
+
+      - name: Linter and poetry check
+        run: make all-checks
