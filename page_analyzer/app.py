@@ -1,12 +1,14 @@
 import os
+import requests
 from datetime import datetime
-from dotenv import load_dotenv
+
 from psycopg2.extras import NamedTupleCursor
 from werkzeug import Response
 
-from .db_work import get_connection, find_by_id, find_all_urls
+from .db_work import get_connection, find_by_id, find_all_urls, find_checks
 
 from .url import validate_url, normalize_url
+from dotenv import load_dotenv
 from flask import (
     Flask,
     render_template,
@@ -74,6 +76,7 @@ def get_one_url(id: int):
         name=url_info.name,
         created_at=url_info.created_at,
         messages=messages,
+        checks=find_checks(id),
     )
 
 
@@ -81,3 +84,31 @@ def get_one_url(id: int):
 def get_urls():
     urls = find_all_urls()
     return render_template("urls.html", urls=urls)
+
+
+@app.post("/urls/<int:id>/checks")
+def check_url(id:int):
+    url_info = find_by_id(id)
+
+    try:
+        with requests.get(url_info.name) as response:
+            status_code = response.status_code
+            response.raise_for_status()
+    except requests.exceptions.RequestException:
+        flash('Произошла ошибка при проверке', 'alert-danger')
+        return render_template(
+            'show.html',
+            id=id,
+            name=url_info.name,
+            created_at=url_info.created_at,
+            checks=find_checks(id)
+        ), 422
+
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO url_checks (url_id, created_at)\
+                           VALUES (%s, %s)",
+                           (id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            flash('Страница успешно проверена', 'alert-success')
+
+    return redirect(url_for('get_one_url', id=id))
