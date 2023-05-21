@@ -112,3 +112,4 @@ def check_url(id:int):
             flash('Страница успешно проверена', 'alert-success')
 
     return redirect(url_for('get_one_url', id=id))
+
