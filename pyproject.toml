@@ -22,6 +22,7 @@ psycopg2 = "^2.9.6"
 requests = "^2.30.0"
 responses = "^0.23.1"
 python-dotenv = "^1.0.0"
+dotenv = "0.0.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"
