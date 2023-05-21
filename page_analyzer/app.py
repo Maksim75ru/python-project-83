@@ -87,12 +87,12 @@ def get_urls():
 
 
 @app.post("/urls/<int:id>/checks")
-def check_url(id:int):
+def check_url(id: int):
     url_info = find_by_id(id)
 
     try:
         with requests.get(url_info.name) as response:
-            status_code = response.status_code
+            status_code = response.status_code  # noqa
             response.raise_for_status()
     except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'alert-danger')
@@ -112,4 +112,3 @@ def check_url(id:int):
             flash('Страница успешно проверена', 'alert-success')
 
     return redirect(url_for('get_one_url', id=id))
-
