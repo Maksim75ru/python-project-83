@@ -8,7 +8,7 @@ from werkzeug import Response
 from .db_work import get_connection, find_by_id, find_all_urls, find_checks
 
 from .url import validate_url, normalize_url
-from dotenv import load_dotenv
+from dotenv.main import load_dotenv
 from flask import (
     Flask,
     render_template,
@@ -97,7 +97,7 @@ def check_url(id: int):
     except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'alert-danger')
         return render_template(
-            'show.html',
+            'show_one_url.html',
             id=id,
             name=url_info.name,
             created_at=url_info.created_at,
@@ -106,9 +106,13 @@ def check_url(id: int):
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO url_checks (url_id, created_at)\
-                           VALUES (%s, %s)",
-                           (id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            cursor.execute("INSERT INTO url_checks \
+                                (url_id, status_code, created_at)\
+                           VALUES (%s, %s, %s)",
+                           (id,
+                            status_code,
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            ))
             flash('Страница успешно проверена', 'alert-success')
 
     return redirect(url_for('get_one_url', id=id))
