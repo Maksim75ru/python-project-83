@@ -1,11 +1,11 @@
 import os
 import datetime
 from typing import Any
-
+import logging
 import psycopg2
 
 from psycopg2.extras import NamedTupleCursor
-from dotenv.main import load_dotenv
+from dotenv import load_dotenv
 
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -16,6 +16,7 @@ def get_connection():
 
 
 def find_by_id(id_: int) -> tuple[int, str, datetime] | None:
+    logging.info("Start find_by_id")
     with get_connection() as connection:
         with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
             cursor.execute("SELECT * FROM urls WHERE id = %s", (id_, ))
@@ -23,6 +24,7 @@ def find_by_id(id_: int) -> tuple[int, str, datetime] | None:
 
 
 def find_all_urls():
+    logging.info("Start find_all_urls")
     urls = []
     with get_connection() as connection:
         with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
@@ -40,6 +42,7 @@ def find_all_urls():
 
 
 def find_checks(url_id: int) -> list[tuple[Any, ...]]:
+    logging.info("Start find_checks")
     url_checks = []
 
     with get_connection() as connection:

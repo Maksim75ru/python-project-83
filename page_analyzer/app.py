@@ -1,14 +1,16 @@
+import logging
 import os
 import requests
 from datetime import datetime
 
 from psycopg2.extras import NamedTupleCursor
 from werkzeug import Response
+from bs4 import BeautifulSoup
 
 from .db_work import get_connection, find_by_id, find_all_urls, find_checks
-
+from .parser import get_data_from_html
 from .url import validate_url, normalize_url
-from dotenv.main import load_dotenv
+from dotenv import load_dotenv
 from flask import (
     Flask,
     render_template,
@@ -19,11 +21,9 @@ from flask import (
     url_for,
 )
 
-
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
 SECRET = os.getenv('SECRET_KEY')
-
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET
@@ -88,11 +88,12 @@ def get_urls():
 
 @app.post("/urls/<int:id>/checks")
 def check_url(id: int):
+    logging.info("Start check_url")
     url_info = find_by_id(id)
 
     try:
         with requests.get(url_info.name) as response:
-            status_code = response.status_code  # noqa
+            status_code = response.status_code
             response.raise_for_status()
     except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'alert-danger')
@@ -104,13 +105,21 @@ def check_url(id: int):
             checks=find_checks(id)
         ), 422
 
+    h1, title, description = get_data_from_html(
+        BeautifulSoup(response.text, 'html.parser')
+    )
+
     with get_connection() as connection:
         with connection.cursor() as cursor:
             cursor.execute("INSERT INTO url_checks \
-                                (url_id, status_code, created_at)\
-                           VALUES (%s, %s, %s)",
+                                (url_id, status_code, h1, \
+                                title, description, created_at)\
+                           VALUES (%s, %s, %s, %s, %s, %s)",
                            (id,
                             status_code,
+                            h1,
+                            title,
+                            description,
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             ))
             flash('Страница успешно проверена', 'alert-success')
