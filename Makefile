@@ -32,4 +32,6 @@ connect:
 
 all-checks: check lint
 
-.PHONY: install check build
+database: db-create schema-load
+
+.PHONY: install all-checks build
