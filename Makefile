@@ -1,7 +1,7 @@
 PORT ?= 8000
 
 install:
-	poetry install
+	poetry install -vvv
 
 build: check
 	poetry build
