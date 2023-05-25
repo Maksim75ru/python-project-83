@@ -7,11 +7,17 @@ from datetime import datetime
 from psycopg2.extras import NamedTupleCursor
 from werkzeug import Response
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 
-from .db_work import get_connection, find_by_id, find_all_urls, find_checks, find_by_name
 from .parser import get_data_from_html
 from .url import validate_url, normalize_url
-from dotenv import load_dotenv
+from .db_work import (
+    get_connection,
+    find_by_id,
+    find_all_urls,
+    find_checks,
+    find_by_name
+)
 from flask import (
     Flask,
     render_template,
