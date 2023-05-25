@@ -17,7 +17,7 @@ def normalize_url(url: str) -> str:
     return f"{parsed_url.scheme}://{parsed_url.netloc}"
 
 
-def validate_url(url: str) -> dict:
+def validate_url(url: str) -> list[str]:
     """
 
     Args:
@@ -26,11 +26,11 @@ def validate_url(url: str) -> dict:
     Returns: blank dict or dict where key = url, value = Error message
 
     """
-    errors = {}
+    errors = []
     if len(url) == 0:
-        errors['url'] = 'No url'
+        errors.append("No url")
 
     if errors or not validators.url(url) or len(url) > MAX_URL_LEN:
-        errors["url"] = "Not valid url"
+        errors.append("Not valid url")
 
     return errors
