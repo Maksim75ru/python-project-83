@@ -24,7 +24,6 @@ from flask import (
     redirect,
     request,
     flash,
-    get_flashed_messages,
     url_for,
 )
 
@@ -80,14 +79,11 @@ def get_one_url(id: int):
         flash("Такой страницы не существует", "alert-warning")
         return redirect(url_for("index"), code=404)
 
-    messages = get_flashed_messages(with_categories=True)
-
     return render_template(
         "show_one_url.html",
-        id=url_info.id,
+        id=id,
         name=url_info.name,
         created_at=url_info.created_at,
-        messages=messages,
         checks=find_checks(id),
     )
 

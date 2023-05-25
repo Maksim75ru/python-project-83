@@ -27,8 +27,10 @@ def validate_url(url: str) -> dict:
 
     """
     errors = {}
-    if not validators.url(url) or len(url) > MAX_URL_LEN:
-        errors["url"] = "Not valid url"
-    elif len(url) == 0:
+    if len(url) == 0:
         errors['url'] = 'No url'
+
+    if errors or not validators.url(url) or len(url) > MAX_URL_LEN:
+        errors["url"] = "Not valid url"
+
     return errors
