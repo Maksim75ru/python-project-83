@@ -23,6 +23,13 @@ def find_by_id(id_: int) -> tuple[int, str, datetime] | None:
             return cursor.fetchone()
 
 
+def find_by_name(name: str) -> tuple[int, str, datetime]:
+    with get_connection() as connection:
+        with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
+            cursor.execute("SELECT * FROM urls WHERE name = %s", (name, ))
+            return cursor.fetchone()
+
+
 def find_all_urls():
     logging.info("Start find_all_urls")
     urls = []

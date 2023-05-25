@@ -1,13 +1,14 @@
 import logging
 import os
 import requests
-from datetime import datetime
+import psycopg2
 
+from datetime import datetime
 from psycopg2.extras import NamedTupleCursor
 from werkzeug import Response
 from bs4 import BeautifulSoup
 
-from .db_work import get_connection, find_by_id, find_all_urls, find_checks
+from .db_work import get_connection, find_by_id, find_all_urls, find_checks, find_by_name
 from .parser import get_data_from_html
 from .url import validate_url, normalize_url
 from dotenv import load_dotenv
@@ -49,13 +50,18 @@ def urls_post() -> tuple[str, int] | Response:
 
     with get_connection() as connection:
         with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
-            cursor.execute("INSERT INTO urls (name, created_at)\
-                            VALUES (%s, %s) RETURNING id",
-                           (new_url,
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            url_info = cursor.fetchone()
-            url_id = url_info.id
-            flash('Страница успешно добавлена', 'alert-success')
+            try:
+                cursor.execute("INSERT INTO urls (name, created_at)\
+                                VALUES (%s, %s) RETURNING id",
+                               (new_url,
+                                datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                url_info = cursor.fetchone()
+                url_id = url_info.id
+                flash('Страница успешно добавлена', 'alert-success')
+            except psycopg2.errors.UniqueViolation:
+                url = find_by_name(new_url)
+                url_id = url.id
+                flash('Страница уже существует', 'alert-warning')
 
     return redirect(url_for('get_one_url', id=url_id))
 
@@ -125,3 +131,8 @@ def check_url(id: int):
             flash('Страница успешно проверена', 'alert-success')
 
     return redirect(url_for('get_one_url', id=id))
+
+
+@app.errorhandler(psycopg2.OperationalError)
+def special_exception_handler(error) -> str:
+    return render_template('error.html'), 500
