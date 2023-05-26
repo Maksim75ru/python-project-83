@@ -63,10 +63,10 @@ def urls_post() -> tuple[str, int] | Response:
                 url_info = cursor.fetchone()
                 url_id = url_info.id
                 flash('Страница успешно добавлена', 'alert-success')
-            except psycopg2.errors.UniqueViolation:
+            except psycopg2.errors.UniqueViolation as e:
                 url = find_by_name(new_url)
                 url_id = url.id
-                flash('Страница уже существует', 'alert-warning')
+                flash(f'Страница уже существует {e}', 'alert-warning')
 
     return redirect(url_for('get_one_url', id=url_id))
 
@@ -77,7 +77,7 @@ def get_one_url(id: int):
 
     if url_info is None:
         flash("Такой страницы не существует", "alert-warning")
-        return redirect(url_for("index"), code=404)
+        raise psycopg2.errors.CaseNotFound
 
     return render_template(
         "show_one_url.html",
@@ -137,4 +137,10 @@ def check_url(id: int):
 
 @app.errorhandler(psycopg2.OperationalError)
 def special_exception_handler(error) -> str:
+    print(error)
     return render_template('error.html'), 500
+
+
+@app.errorhandler(psycopg2.ProgrammingError)
+def special_programming_error_handler(error) -> str:
+    return render_template('index.html'), 404
