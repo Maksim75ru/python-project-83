@@ -7,8 +7,7 @@ MAX_URL_LEN = 255
 def normalize_url(url: str) -> str:
     """
 
-    Args:
-        url: string url
+    Args: url: string url
 
     Returns: <protocol>://<domain name> structure
 
@@ -20,10 +19,9 @@ def normalize_url(url: str) -> str:
 def validate_url(url: str) -> list[str]:
     """
 
-    Args:
-        url: string url
+    Args: url: string url
 
-    Returns: blank dict or dict where key = url, value = Error message
+    Returns: list of strings, where every string is the name of mistake
 
     """
     errors = []

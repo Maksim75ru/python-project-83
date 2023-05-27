@@ -1,11 +1,10 @@
-import logging
 import os
+import logging
 import requests
 import psycopg2
 
 from datetime import datetime
 from psycopg2.extras import NamedTupleCursor
-from werkzeug import Response
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
@@ -28,8 +27,8 @@ from flask import (
 )
 
 load_dotenv()
-DATABASE_URL = os.getenv('DATABASE_URL')
-SECRET = os.getenv('SECRET_KEY')
+DATABASE_URL = os.getenv("DATABASE_URL")
+SECRET = os.getenv("SECRET_KEY")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET
@@ -40,16 +39,16 @@ def index():
     return render_template("index.html")
 
 
-@app.route('/urls', methods=['POST'])
-def urls_post() -> tuple[str, int] | Response:
-    url_from_request = request.form.to_dict().get('url', '')
+@app.route("/urls", methods=["POST"])
+def urls_post():
+    url_from_request = request.form.to_dict().get("url", "")
     errors = validate_url(url_from_request)
 
-    if 'Not valid url' in errors:
-        flash('Некорректный URL', 'alert-danger')
-        if 'No url' in errors:
-            flash('URL обязателен', 'alert-danger')
-        return render_template('index.html'), 422
+    if "Not valid url" in errors:
+        flash("Некорректный URL", "alert-danger")
+        if "No url" in errors:
+            flash("URL обязателен", "alert-danger")
+        return render_template("index.html"), 422
 
     new_url = normalize_url(url_from_request)
 
@@ -62,13 +61,14 @@ def urls_post() -> tuple[str, int] | Response:
                                 datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
                 url_info = cursor.fetchone()
                 url_id = url_info.id
-                flash('Страница успешно добавлена', 'alert-success')
-            except psycopg2.errors.UniqueViolation as e:
+                flash("Страница успешно добавлена", "alert-success")
+            except psycopg2.errors.UniqueViolation:
                 url = find_by_name(new_url)
                 url_id = url.id
-                flash(f'Страница уже существует {e}', 'alert-warning')
+                flash("Страница уже существует", "alert-warning")
+                raise psycopg2.errors.UniqueViolation
 
-    return redirect(url_for('get_one_url', id=url_id))
+    return redirect(url_for("get_one_url", id=url_id))
 
 
 @app.get("/urls/<int:id>")
@@ -104,9 +104,9 @@ def check_url(id: int):
             status_code = response.status_code
             response.raise_for_status()
     except requests.exceptions.RequestException:
-        flash('Произошла ошибка при проверке', 'alert-danger')
+        flash("Произошла ошибка при проверке", "alert-danger")
         return render_template(
-            'show_one_url.html',
+            "show_one_url.html",
             id=id,
             name=url_info.name,
             created_at=url_info.created_at,
@@ -114,7 +114,7 @@ def check_url(id: int):
         ), 422
 
     h1, title, description = get_data_from_html(
-        BeautifulSoup(response.text, 'html.parser')
+        BeautifulSoup(response.text, "html.parser")
     )
 
     with get_connection() as connection:
@@ -130,17 +130,16 @@ def check_url(id: int):
                             description,
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             ))
-            flash('Страница успешно проверена', 'alert-success')
+            flash("Страница успешно проверена", "alert-success")
 
-    return redirect(url_for('get_one_url', id=id))
+    return redirect(url_for("get_one_url", id=id))
 
 
-@app.errorhandler(psycopg2.OperationalError)
-def special_exception_handler(error) -> str:
-    print(error)
-    return render_template('error.html'), 500
+@app.errorhandler(psycopg2.IntegrityError)
+def special_exception_handler(error):
+    return render_template("error_500.html"), 500
 
 
 @app.errorhandler(psycopg2.ProgrammingError)
-def special_programming_error_handler(error) -> str:
-    return render_template('index.html'), 404
+def special_programming_error_handler(error):
+    return render_template("error_404.html"), 404
