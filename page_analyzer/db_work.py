@@ -15,19 +15,19 @@ def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
 
-def find_by_id(id_: int) -> (int, str,  datetime, None):
+def find_by_id(id_: int) -> (int, str, datetime, None):
     logging.info("Start find_by_id")
     with get_connection() as connection:
         with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
-            cursor.execute("SELECT * FROM urls WHERE id = %s", (id_, ))
+            cursor.execute("SELECT * FROM urls WHERE id = %s", (id_,))
             return cursor.fetchone()
 
 
-def find_by_name(name: str) -> (int, str,  datetime, None):
+def find_by_name(name: str) -> (int, str, datetime, None):
     logging.info("Start find_by_name")
     with get_connection() as connection:
         with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
-            cursor.execute("SELECT * FROM urls WHERE name = %s", (name, ))
+            cursor.execute("SELECT * FROM urls WHERE name = %s", (name,))
             return cursor.fetchone()
 
 
@@ -55,9 +55,11 @@ def find_checks(url_id: int) -> list[tuple[Any, ...]]:
 
     with get_connection() as connection:
         with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
-            cursor.execute("SELECT * FROM url_checks WHERE url_id = %s\
-                           ORDER BY id DESC",
-                           (url_id, ))
+            cursor.execute(
+                "SELECT * FROM url_checks WHERE url_id = %s\
+                ORDER BY id DESC",
+                (url_id,),
+            )
             url_checks.extend(cursor.fetchall())
 
     return url_checks

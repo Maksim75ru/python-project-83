@@ -23,6 +23,7 @@ python-dotenv = "^1.0.0"
 beautifulsoup4 = "^4.12.2"
 psycopg2-binary = "^2.9.6"
 flask = "2.2.3"
+black = "^23.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"

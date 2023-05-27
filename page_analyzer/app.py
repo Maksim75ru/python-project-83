@@ -15,7 +15,7 @@ from .db_work import (
     find_by_id,
     find_all_urls,
     find_checks,
-    find_by_name
+    find_by_name,
 )
 from flask import (
     Flask,
@@ -55,10 +55,11 @@ def urls_post():
     with get_connection() as connection:
         with connection.cursor(cursor_factory=NamedTupleCursor) as cursor:
             try:
-                cursor.execute("INSERT INTO urls (name, created_at)\
-                                VALUES (%s, %s) RETURNING id",
-                               (new_url,
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                cursor.execute(
+                    "INSERT INTO urls (name, created_at)\
+                    VALUES (%s, %s) RETURNING id",
+                    (new_url, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                )
                 url_info = cursor.fetchone()
                 url_id = url_info.id
                 flash("Страница успешно добавлена", "alert-success")
@@ -104,13 +105,16 @@ def check_url(id: int):
             response.raise_for_status()
     except requests.exceptions.RequestException:
         flash("Произошла ошибка при проверке", "alert-danger")
-        return render_template(
-            "show_one_url.html",
-            id=id,
-            name=url_info.name,
-            created_at=url_info.created_at,
-            checks=find_checks(id)
-        ), 422
+        return (
+            render_template(
+                "show_one_url.html",
+                id=id,
+                name=url_info.name,
+                created_at=url_info.created_at,
+                checks=find_checks(id),
+            ),
+            422,
+        )
 
     h1, title, description = get_data_from_html(
         BeautifulSoup(response.text, "html.parser")
@@ -118,17 +122,20 @@ def check_url(id: int):
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO url_checks \
-                                (url_id, status_code, h1, \
-                                title, description, created_at)\
-                           VALUES (%s, %s, %s, %s, %s, %s)",
-                           (id,
-                            status_code,
-                            h1,
-                            title,
-                            description,
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            ))
+            cursor.execute(
+                "INSERT INTO url_checks \
+                    (url_id, status_code, h1, \
+                    title, description, created_at)\
+                VALUES (%s, %s, %s, %s, %s, %s)",
+                (
+                    id,
+                    status_code,
+                    h1,
+                    title,
+                    description,
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                ),
+            )
             flash("Страница успешно проверена", "alert-success")
 
     return redirect(url_for("get_one_url", id=id))
