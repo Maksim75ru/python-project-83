@@ -66,7 +66,6 @@ def urls_post():
                 url = find_by_name(new_url)
                 url_id = url.id
                 flash("Страница уже существует", "alert-warning")
-                raise psycopg2.errors.UniqueViolation
 
     return redirect(url_for("get_one_url", id=url_id))
 
